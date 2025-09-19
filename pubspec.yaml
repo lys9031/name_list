@@ -19,7 +19,7 @@ dependencies:
   google_mlkit_text_recognition: ^0.3.0
   path_provider: ^2.0.15
   drift: ^2.8.3
-  drift_sqflite: ^0.4.1
+  drift_sqflite: ^2.0.1
   share_plus: ^7.0.1
 
 dev_dependencies:
