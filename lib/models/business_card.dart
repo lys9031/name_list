@@ -1,17 +1,20 @@
-// BusinessCard 클래스 - 명함 1장의 데이터 구조
 class BusinessCard {
   String id;
-  String name;
-  String company;
-  String title;
-  String imagePath;
-  List<String> categories;
+  String name;        // 이름
+  String company;     // 회사
+  String position;    // 직급 (기존 title → position)
+  String phone;       // 전화번호 (신규)
+  String email;       // 이메일 (신규)
+  String imagePath;   // 이미지 경로
+  List<String> categories; // 카테고리
 
   BusinessCard({
     required this.id,
     required this.name,
     required this.company,
-    required this.title,
+    required this.position,
+    required this.phone,
+    required this.email,
     required this.imagePath,
     required this.categories,
   });

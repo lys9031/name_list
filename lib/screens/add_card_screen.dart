@@ -4,8 +4,11 @@ import 'package:image_picker/image_picker.dart';
 import '../models/business_card.dart';
 import '../utils/ocr_helper.dart';
 
-// 명함 추가 화면 (카메라로 사진, OCR 인식, 직접 입력)
 class AddCardScreen extends StatefulWidget {
+  final BusinessCard? card; // 수정 모드 지원
+
+  AddCardScreen({this.card});
+
   @override
   State<AddCardScreen> createState() => _AddCardScreenState();
 }
@@ -16,8 +19,26 @@ class _AddCardScreenState extends State<AddCardScreen> {
 
   final nameCtrl = TextEditingController();
   final companyCtrl = TextEditingController();
-  final titleCtrl = TextEditingController();
+  final positionCtrl = TextEditingController();
+  final phoneCtrl = TextEditingController();
+  final emailCtrl = TextEditingController();
   final categoryCtrl = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.card != null) {
+      nameCtrl.text = widget.card!.name;
+      companyCtrl.text = widget.card!.company;
+      positionCtrl.text = widget.card!.position;
+      phoneCtrl.text = widget.card!.phone;
+      emailCtrl.text = widget.card!.email;
+      categoryCtrl.text = widget.card!.categories.join(', ');
+      if (widget.card!.imagePath.isNotEmpty) {
+        _imageFile = File(widget.card!.imagePath);
+      }
+    }
+  }
 
   Future<void> _getImage() async {
     final picked = await picker.pickImage(source: ImageSource.camera);
@@ -26,12 +47,14 @@ class _AddCardScreenState extends State<AddCardScreen> {
         _imageFile = File(picked.path);
       });
 
-      // OCR mock: 실제는 ocr_helper.dart 참고
+      // OCR mock
       final ocr = await mockCardOCR();
-      nameCtrl.text = ocr['name'] ?? '';
-      companyCtrl.text = ocr['company'] ?? '';
-      titleCtrl.text = ocr['title'] ?? '';
-      categoryCtrl.text = ocr['category'] ?? '';
+      nameCtrl.text = ocr['name'] ?? nameCtrl.text;
+      companyCtrl.text = ocr['company'] ?? companyCtrl.text;
+      positionCtrl.text = ocr['position'] ?? positionCtrl.text;
+      phoneCtrl.text = ocr['phone'] ?? phoneCtrl.text;
+      emailCtrl.text = ocr['email'] ?? emailCtrl.text;
+      categoryCtrl.text = ocr['category'] ?? categoryCtrl.text;
     }
   }
 
@@ -41,10 +64,12 @@ class _AddCardScreenState extends State<AddCardScreen> {
       return;
     }
     final card = BusinessCard(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: widget.card?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
       name: nameCtrl.text,
       company: companyCtrl.text,
-      title: titleCtrl.text,
+      position: positionCtrl.text,
+      phone: phoneCtrl.text,
+      email: emailCtrl.text,
       imagePath: _imageFile!.path,
       categories: categoryCtrl.text.split(',').map((e) => e.trim()).toList(),
     );
@@ -54,7 +79,7 @@ class _AddCardScreenState extends State<AddCardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('명함 추가')),
+      appBar: AppBar(title: Text(widget.card == null ? '명함 추가' : '명함 수정')),
       body: Padding(
         padding: EdgeInsets.all(24),
         child: ListView(
@@ -68,10 +93,14 @@ class _AddCardScreenState extends State<AddCardScreen> {
             ]),
             TextField(controller: nameCtrl, decoration: InputDecoration(labelText: '이름')),
             TextField(controller: companyCtrl, decoration: InputDecoration(labelText: '회사')),
-            TextField(controller: titleCtrl, decoration: InputDecoration(labelText: '직함')),
+            TextField(controller: positionCtrl, decoration: InputDecoration(labelText: '직급')),
+            TextField(controller: phoneCtrl, decoration: InputDecoration(labelText: '전화번호')),
+            TextField(controller: emailCtrl, decoration: InputDecoration(labelText: '이메일')),
             TextField(controller: categoryCtrl, decoration: InputDecoration(labelText: '카테고리(,로 구분)')),
             SizedBox(height: 24),
-            ElevatedButton(onPressed: _saveCard, child: Text('저장'))
+            ElevatedButton(
+                onPressed: _saveCard,
+                child: Text(widget.card == null ? '저장' : '수정 완료'))
           ],
         ),
       ),

@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'providers/card_provider.dart';
 import 'screens/home_screen.dart';
 
-// 앱의 시작점
 void main() {
-  runApp(NameListApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => CardProvider(),
+      child: NameListApp(),
+    ),
+  );
 }
 
 class NameListApp extends StatelessWidget {
