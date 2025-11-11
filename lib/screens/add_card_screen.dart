@@ -5,8 +5,7 @@ import '../models/business_card.dart';
 import '../utils/ocr_helper.dart';
 
 class AddCardScreen extends StatefulWidget {
-  final BusinessCard? card; // 수정 모드 지원
-
+  final BusinessCard? card;
   AddCardScreen({this.card});
 
   @override
@@ -80,28 +79,60 @@ class _AddCardScreenState extends State<AddCardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(widget.card == null ? '명함 추가' : '명함 수정')),
-      body: Padding(
-        padding: EdgeInsets.all(24),
-        child: ListView(
-          children: [
-            _imageFile == null
-                ? ElevatedButton(onPressed: _getImage, child: Text('사진 촬영'))
-                : Column(children: [
-              Image.file(_imageFile!, width: 220, height: 140, fit: BoxFit.cover),
-              SizedBox(height: 8),
-              TextButton(onPressed: _getImage, child: Text('다시 촬영')),
-            ]),
-            TextField(controller: nameCtrl, decoration: InputDecoration(labelText: '이름')),
-            TextField(controller: companyCtrl, decoration: InputDecoration(labelText: '회사')),
-            TextField(controller: positionCtrl, decoration: InputDecoration(labelText: '직급')),
-            TextField(controller: phoneCtrl, decoration: InputDecoration(labelText: '전화번호')),
-            TextField(controller: emailCtrl, decoration: InputDecoration(labelText: '이메일')),
-            TextField(controller: categoryCtrl, decoration: InputDecoration(labelText: '카테고리(,로 구분)')),
-            SizedBox(height: 24),
-            ElevatedButton(
-                onPressed: _saveCard,
-                child: Text(widget.card == null ? '저장' : '수정 완료'))
-          ],
+      body: Center(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(30),
+          child: Container(
+            padding: EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(34),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 28,
+                  spreadRadius: 5,
+                  offset: Offset(0, 16),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _imageFile == null
+                    ? ElevatedButton.icon(
+                  icon: Icon(Icons.camera_alt),
+                  label: Text('사진 촬영'),
+                  onPressed: _getImage,
+                )
+                    : Column(children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(14),
+                    child: Image.file(_imageFile!, width: 240, height: 120, fit: BoxFit.cover),
+                  ),
+                  SizedBox(height: 8),
+                  TextButton(onPressed: _getImage, child: Text('다시 촬영')),
+                ]),
+                SizedBox(height: 16),
+                TextField(controller: nameCtrl, decoration: InputDecoration(labelText: '이름')),
+                SizedBox(height: 8),
+                TextField(controller: companyCtrl, decoration: InputDecoration(labelText: '회사')),
+                SizedBox(height: 8),
+                TextField(controller: positionCtrl, decoration: InputDecoration(labelText: '직급')),
+                SizedBox(height: 8),
+                TextField(controller: phoneCtrl, decoration: InputDecoration(labelText: '전화번호')),
+                SizedBox(height: 8),
+                TextField(controller: emailCtrl, decoration: InputDecoration(labelText: '이메일')),
+                SizedBox(height: 8),
+                TextField(controller: categoryCtrl, decoration: InputDecoration(labelText: '카테고리(,로 구분)')),
+                SizedBox(height: 28),
+                ElevatedButton(
+                  onPressed: _saveCard,
+                  child: Text(widget.card == null ? '저장' : '수정 완료'),
+                )
+              ],
+            ),
+          ),
         ),
       ),
     );

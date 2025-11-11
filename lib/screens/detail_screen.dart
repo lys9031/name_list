@@ -12,7 +12,6 @@ class DetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 카드 정보가 삭제/수정됐을 수 있으므로 최신값으로 찾기
     final provider = context.watch<CardProvider>();
     final fresh = provider.cards.firstWhere((c) => c.id == card.id, orElse: () => card);
 
@@ -26,7 +25,7 @@ class DetailScreen extends StatelessWidget {
               final edited = await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => AddCardScreen(card: fresh), // 기존 정보 전달
+                  builder: (_) => AddCardScreen(card: fresh),
                 ),
               );
               if (edited != null) {
@@ -42,21 +41,49 @@ class DetailScreen extends StatelessWidget {
       ),
       body: Padding(
         padding: EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (fresh.imagePath.isNotEmpty)
-              Center(
-                child: Image.file(File(fresh.imagePath), width: 220, height: 140, fit: BoxFit.cover),
+        child: Center(
+          child: Hero(
+            tag: "card_${fresh.id}",
+            child: Container(
+              padding: EdgeInsets.all(26),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(34),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 32,
+                    spreadRadius: 5,
+                    offset: Offset(0, 16),
+                  ),
+                ],
               ),
-            SizedBox(height: 20),
-            Text('이름: ${fresh.name}', style: TextStyle(fontSize: 20)),
-            Text('회사: ${fresh.company}'),
-            Text('직급: ${fresh.position}'),
-            Text('전화번호: ${fresh.phone}'),
-            Text('이메일: ${fresh.email}'),
-            Text('카테고리: ${fresh.categories.join(', ')}'),
-          ],
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (fresh.imagePath.isNotEmpty)
+                    Center(
+                      child: Image.file(File(fresh.imagePath), width: 220, height: 140, fit: BoxFit.cover),
+                    ),
+                  SizedBox(height: 20),
+                  Text('이름: ${fresh.name}', style: Theme.of(context).textTheme.titleLarge),
+                  Text('회사: ${fresh.company}', style: Theme.of(context).textTheme.bodyLarge),
+                  Text('직급: ${fresh.position}', style: Theme.of(context).textTheme.bodyLarge),
+                  Text('전화번호: ${fresh.phone}', style: Theme.of(context).textTheme.bodyLarge),
+                  Text('이메일: ${fresh.email}', style: Theme.of(context).textTheme.bodyLarge),
+                  SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    children: fresh.categories.map((cat) => Chip(
+                      label: Text(cat),
+                      backgroundColor: Colors.orange[200],
+                    )).toList(),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );

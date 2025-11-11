@@ -3,8 +3,8 @@ import 'package:provider/provider.dart';
 import '../providers/card_provider.dart';
 import 'add_card_screen.dart';
 import 'detail_screen.dart';
-import '../widgets/card_tile.dart';
 import '../models/business_card.dart';
+import '../widgets/animated_card_tile.dart';
 import 'dart:math';
 
 class HomeScreen extends StatefulWidget {
@@ -12,11 +12,24 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
   String _query = '';
   String? _selectedCategory;
   String _sortOption = 'latest';
   bool _sampleAdded = false;
+  late AnimationController _animController;
+
+  @override
+  void initState() {
+    super.initState();
+    _animController = AnimationController(vsync: this, duration: Duration(milliseconds: 450));
+  }
+
+  @override
+  void dispose() {
+    _animController.dispose();
+    super.dispose();
+  }
 
   @override
   void didChangeDependencies() {
@@ -29,10 +42,10 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       }
       _sampleAdded = true;
+      Future.delayed(Duration(milliseconds: 150), () => _animController.forward());
     }
   }
 
-  // 샘플 명함 데이터 리스트 (업데이트된 구조)
   final sampleCards = [
     BusinessCard(
       id: Random().nextInt(999999).toString(),
@@ -114,28 +127,41 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: Text('명함 리스트'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         bottom: PreferredSize(
-          preferredSize: Size.fromHeight(100),
+          preferredSize: Size.fromHeight(106),
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                child: TextField(
-                  decoration: InputDecoration(
-                    hintText: '이름, 회사, 직급, 전화번호, 이메일, 카테고리로 검색',
-                    filled: true,
-                    fillColor: Colors.white,
-                    prefixIcon: Icon(Icons.search),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                    contentPadding: EdgeInsets.zero,
+                padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 8.0),
+                child: AnimatedContainer(
+                  duration: Duration(milliseconds: 350),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(22),
+                    boxShadow: [
+                      BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 3)),
+                    ],
                   ),
-                  onChanged: (value) {
-                    setState(() {
-                      _query = value.trim();
-                    });
-                  },
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: '이름, 회사, 직급, 전화번호, 이메일, 카테고리로 검색',
+                      filled: true,
+                      fillColor: Colors.white,
+                      prefixIcon: Icon(Icons.search, color: Color(0xFFFFAA70)),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(18), borderSide: BorderSide.none),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        _query = value.trim();
+                      });
+                    },
+                  ),
                 ),
               ),
               SingleChildScrollView(
@@ -145,9 +171,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     ActionChip(
                       label: Text('전체'),
                       onPressed: () => setState(() => _selectedCategory = null),
-                      backgroundColor: _selectedCategory == null ? Colors.blue : Colors.grey[200],
+                      backgroundColor: _selectedCategory == null ? Color(0xFFFFAA70) : Colors.grey[200],
                       labelStyle: TextStyle(
                         color: _selectedCategory == null ? Colors.white : Colors.black,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     ...allCategories.map((cat) => Padding(
@@ -155,9 +182,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: ActionChip(
                         label: Text(cat),
                         onPressed: () => setState(() => _selectedCategory = cat),
-                        backgroundColor: _selectedCategory == cat ? Colors.blue : Colors.grey[200],
+                        backgroundColor: _selectedCategory == cat ? Color(0xFFFFAA70) : Colors.grey[200],
                         labelStyle: TextStyle(
                           color: _selectedCategory == cat ? Colors.white : Colors.black,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     )),
@@ -165,7 +193,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.only(top: 6, left: 16, right: 16, bottom: 4),
+                padding: const EdgeInsets.only(top: 4, left: 16, right: 16, bottom: 0),
                 child: Row(
                   children: [
                     Text('정렬:', style: TextStyle(fontSize: 14)),
@@ -189,19 +217,22 @@ class _HomeScreenState extends State<HomeScreen> {
       body: filtered.isEmpty
           ? Center(child: Text('검색 결과가 없습니다.'))
           : ListView.builder(
+        padding: EdgeInsets.only(top: 24),
         itemCount: filtered.length,
         itemBuilder: (context, idx) {
+          final anim = _animController.drive(
+            CurveTween(curve: Interval(0.08 * idx, 0.6 + 0.1 * idx, curve: Curves.easeOutCubic)),
+          );
           final card = filtered[idx];
-          return GestureDetector(
+          return AnimatedCardTile(
+            card: card,
+            onDelete: () => cardProvider.removeCard(card.id),
+            animation: anim,
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (_) => DetailScreen(card: card),
               ),
-            ),
-            child: CardTile(
-              card: card,
-              onDelete: () => cardProvider.removeCard(card.id),
             ),
           );
         },
@@ -218,7 +249,7 @@ class _HomeScreenState extends State<HomeScreen> {
             context.read<CardProvider>().addCard(newCard);
           }
         },
-        child: Icon(Icons.add),
+        child: Icon(Icons.add, size: 28),
       ),
     );
   }
